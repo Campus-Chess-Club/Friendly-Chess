@@ -1559,6 +1559,7 @@ namespace Friendly_Chess
                     this.Refresh();
                     Application.DoEvents();
                     //Thread.Sleep(1000);
+                    //
                 }
                 ComputerPlay(silent);
             }
