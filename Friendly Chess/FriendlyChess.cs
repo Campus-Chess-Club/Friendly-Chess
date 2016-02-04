@@ -15,8 +15,13 @@ using System.Threading;
 
 namespace Friendly_Chess
 {
+
+    using card = System.Int32;
+
     public partial class frmChess : Form
     {
+
+            
 
         public struct TestPoint
         {
@@ -41,6 +46,8 @@ namespace Friendly_Chess
                 valueRange result;
                 result.minValue = -x.maxValue;
                 result.maxValue = -x.minValue;
+                card abc = 0;
+                int d = abc;
                 return result;
             }
         }
@@ -547,6 +554,8 @@ namespace Friendly_Chess
 
         int prevValue = 0;
 
+        long globalCounter = 0;
+
         Stopwatch sw1 = new Stopwatch();
         Stopwatch sw2 = new Stopwatch();
         Stopwatch sw3 = new Stopwatch();
@@ -698,7 +707,7 @@ namespace Friendly_Chess
                                 int targetPieceIndex = board[square];
                                 int targetPiece = pieces[targetPieceIndex];
                                 bool capture = (((targetPiece & 24) ^ playerOnTurn) == 24);
-                                bool obstruct = (((targetPiece & 24) & playerOnTurn) != 0);
+                                bool obstruct = ((targetPiece & playerOnTurn) != 0);
 
                                 if (justCheckingCheck)
                                 {
@@ -853,6 +862,11 @@ namespace Friendly_Chess
                                             moveQueue[0] = moveQueue[0] | (((long)epSquare) << epOffset);
                                             //tempGame = ExecuteMove(game, moveQueue[0]);
                                             //int[] pre = game.Serialize();
+                                            if (moveQueue[0]==0)
+                                            {
+                                                game = game;
+                                            }
+
                                             ExecuteMove(game, moveQueue[0], true);
                                             legalPosition = (!CheckCheck(game, !(pieceType == 4 | (isPawn && epSquare == square))));
                                             ReverseMove(game, moveQueue[0], true, targetPieceIndex);
@@ -1262,6 +1276,19 @@ namespace Friendly_Chess
 
         public Game ExecuteMove(Game game, long move, bool inPlace = false)
         {
+
+            globalCounter++;
+
+            if (move == 312209621011 && globalCounter == 15233471)
+            {
+                game = game;
+            }
+            if (globalCounter == 15217172)
+            {
+                game = game;
+            }
+
+
             if (game.pieces[0] != 0)
             {
                 game = game;
@@ -1341,7 +1368,13 @@ namespace Friendly_Chess
             newGame.playerOnTurn = 24 ^ newGame.playerOnTurn;
             newGame.ply++;
 
+           
             if (newGame.pieces[0] != 0)
+            {
+                game = game;
+            }
+
+            if (newGame.pieceCount>=7 && newGame.pieces[7]==0)
             {
                 game = game;
             }
@@ -1466,6 +1499,14 @@ namespace Friendly_Chess
             foreach (long move in nodeData.moves)
             {
                 float curValue = -Value(game, depth - 1, ref nodeCount, value - threshold-1, value + threshold, move, 0,(int)depth);
+                if (curValue > 50000)
+                {
+                    curValue -= 10;
+                }
+                else if (curValue < -50000)
+                {
+                    curValue += 10;
+                }
                 if (curValue >= value - threshold)
                 {
                     candidateMoves[candidateMovesCount] = move;
@@ -1475,7 +1516,8 @@ namespace Friendly_Chess
             Array.Sort(candidateMoves, 0, candidateMovesCount);
             int chosenMoveIndex = r.Next(candidateMovesCount);
             long chosenMove = candidateMoves[chosenMoveIndex];
-            Debug.Assert(-Value(game, depth - 1, ref nodeCount, value - threshold - 1, value + threshold, chosenMove, 0, (int)depth) > value - threshold);
+            //Debug.Assert(-Value(game, depth - 1, ref nodeCount, value - threshold - 1, value + threshold, chosenMove, 0, (int)depth) > value - threshold);
+            Debug.Assert(candidateMovesCount>0);
             Game newGame = ExecuteMove(game, chosenMove, false);
             bool continuing = transpositionTable.TryGetValue(newGame.ShortSerialize(), out nodeData);
             StringBuilder sb = new StringBuilder(MoveName(chosenMove));
@@ -2068,6 +2110,11 @@ namespace Friendly_Chess
                 serializedGame = newGame.ShortSerialize();
                 //pastData = null;
                 inTable = transpositionTable.TryGetValue(serializedGame, out pastData);
+
+                if (serializedGame.hash2==-6765668545018914791)
+                {
+                    game = game;
+                }
             }
 #endif
 
@@ -2854,6 +2901,7 @@ namespace Friendly_Chess
         {
             ClearTables();
             r = new Random(-1170798812);
+            globalCounter = 0;
             int i = 0;
             int iterations = 5;
             Stopwatch sw = new Stopwatch();
